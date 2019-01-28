@@ -1,7 +1,7 @@
 ---
 title: "Untitled"
 output: html_document
-author : "Aisyah Nurulhaqi S"
+author : "Muhammad Ashabul Kahfi"
 ---
 
 ```{r setup, include=FALSE}
