@@ -1,0 +1,90 @@
+---
+title: "Untitled"
+output: html_document
+author : "Aisyah Nurulhaqi S"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+options(scipen = 9999)
+library(dplyr)
+```
+
+```{r}
+credit <- read.csv("lbb_loans.csv")
+str(credit)
+head(credit)
+
+credit$not_paid <- as.factor(credit$not_paid)
+credit$verified <- as.factor(credit$verified)
+credit$grdCtoA <- as.factor(credit$grdCtoA)
+```
+
+```{r}
+library(gtools)
+library(gmodels)
+levels(credit$not_paid)
+
+credit.news <- credit
+
+prop.table(table(credit.news$not_paid))
+
+set.seed(10)
+intrain <- sample(1:nrow(credit.news), nrow(credit.news) * 0.8)
+credit_train <- credit.news[intrain,]
+credit_test <- credit.news[-intrain,]
+
+prop.table(table(credit_train$not_paid))
+prop.table(table(credit_test$not_paid))
+
+library(car)
+
+glmModel1 <- glm(not_paid ~ installment + delinq_2yrs + home_ownership + verified + grdCtoA , credit_train, family="binomial")
+vif(glmModel1)
+summary(glmModel1)
+
+credit_test$pred.Risk <- predict(glmModel1, credit_test, type = "response")
+
+table("predicted"=as.numeric(credit_test$pred.Risk>=0.5), "actual"=credit_test$not_paid)
+
+cond_not <- round(credit_test$pred.Risk)
+
+caret::confusionMatrix(as.factor(cond_not), as.factor(credit_test$not_paid), positive = "1")
+```
+
+Dari model yang didapat, dapat dilihat bahwa home_ownershipOWN akan meningkatkan log odds yang terjadi dibandingkan ketika tidak home_ownershipOWN dengan selisih sebanyak 0.56. Log odds not_paid dengan kondisi home_ownersipnya OWN itu lebih besar 0.56 dibandingkan dengan kondisi tidak OWN home_ownershipnya.
+
+- How do we correctly interpret the negative coefficients obtained from your logistic regression?
+- How do we know which of the variables are more statistically significant as predictors?
+- What are some strategies to improve your model?
+
+1. Koefisien negatif yang didapat dari koefisien model dapat diinterpretasikan sebagai kebalikan dari adanya variabel tersebut. Atau dapat dikatakan bahwa ketika grdCtoA bernilai 1, maka akan mengurangi rasio log odd yang terjadi dibandingkan ketika grdCtoA bernilai 0
+2. Kita dapat mengetahui variabel yang memberi lebih signifikan secara statitikal dari besarnya koefisien yang didapat dari model. Jika dilihat dari model yang didapat, dapat dikatakan bahwa home_ownershipOWN memiliki signifikansi lebih besar daripada yang lain. 
+3. Strategi yang dapat dilakukan untuk meningkatkan model kita antara lain :
+a. menghilangkan variabel yang saling berkorelasi (diketahui dengan vif)
+b. menghilangkan variabel yang tidak signifikan dilihat dari bintangnya
+c. menghilangkan variabel yang memiliki p-value mendekati 1
+

@@ -1,0 +1,142 @@
+---
+title: "Untitled"
+output: html_document
+author : "Muhammad Ashabul Kahfi dan Aisyah Nurulhaqi Syahidah"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+knitr::opts_chunk$set(cache=TRUE)
+options(scipen = 9999)
+rm(list=ls())
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+```{r}
+library(data.table)
+vids <- fread("USvideos.csv")
+str(vids)
+library(lubridate)
+vids$trending_date <- ydm(vids$trending_date)
+vids$publish_time <- ymd_hms(vids$publish_time, tz="America/New_York")
+
+vids$category_id <- sapply(as.character(vids$category_id), switch,
+                           "1" = "Film and Animation",
+                           "2" = "Autos and Vehicles", 
+                           "10" = "Music", 
+                           "15" = "Pets and Animals", 
+                           "17" = "Sports",
+                           "19" = "Travel and Events", 
+                           "20" = "Gaming", 
+                           "22" = "People and Blogs", 
+                           "23" = "Comedy",
+                           "24" = "Entertainment", 
+                           "25" = "News and Politics",
+                           "26" = "Howto and Style", 
+                           "27" = "Education",
+                           "28" = "Science and Technology", 
+                           "29" = "Nonprofit and Activism",
+                           "43" = "Shows")
+vids$category_id <- as.factor(vids$category_id)
+
+head(vids$publish_time)
+vids$publish_hour <- hour(vids$publish_time)
+
+pw <- function(x){
+      if (x < 6 ) {
+        x <- "12am to 6am"
+      } else if (x >= 6 & x < 12) {
+        x <- "6am to 12pm"
+      } else if (x >= 12 & x < 18) {
+        x <- "12pm to 6pm"
+      } else {
+        x <- "6pm to 12 am"
+      }
+}
+
+vids$publish_when <- sapply(vids$publish_hour,pw)
+vids$publish_when <- as.factor(vids$publish_when)
+vids$publish_wday <- as.factor(wday(vids$publish_time, label = TRUE, abbr = F))
+levels(vids$publish_wday)
+```
+
+Kita akan mencari hubungan publish_when dengan jumlah viewers
+```{r}
+library(ggplot2)
+library(GGally)
+library(ggthemes)
+library(ggpubr)
+library(leaflet)
+
+temp2 <- as.data.frame(aggregate(views ~ publish_hour, vids, sum))
+ggplot(temp2, aes(x=publish_hour, y=views))+
+  geom_col()+
+  coord_flip()
+
+```
+Dari plot yang didapat di atas, maka dapat disimpulkan bahwa prime time publikasi pada jam 12 siang.
+
+Setelah mengetahui prime time publikasi, maka dicari pula video yang memberikan viewers terbanyak.
+```{r}
+vids.12 <- vids[vids$publish_hour == 12, ]
+head(vids.12)
+vids.12 <- vids.12[order(vids.12$views, decreasing = T)]
+```
+Dapat dilihat bahwa video yang paling banyak ditonton pada saat prime time adalah "YouTube Rewind: The Shape of 2017|#YouTubeRewind"
+
+Lalu kita ingin melihat preferensi kategori yang ditonton orang-orang saat prime time.
+```{r}
+temp1 <- as.data.frame(aggregate(views ~ category_id, vids.12, sum))
+ggplot(temp1, aes(x=category_id, y=views))+
+  geom_col()+
+  coord_flip()
+```
+
+Dari plot yang didapat di atas, maka dapat disimpulkan bahwa category entertainment memiliki jumlah viewers paling banyak.
+Di urutan ke-2 ada music dan ke-3 comedy.
+
+Lalu kita ingin melihat kategori yang paling banyak dilihat orang pada rentang waktu 12am-6am.
+```{r}
+vids.morning <- vids[vids$publish_when == "12am to 6am", ]
+temp3 <- as.data.frame(aggregate(views ~ category_id, vids.morning, sum))
+ggplot(temp3, aes(x=category_id, y=views))+
+  geom_col()+
+  coord_flip()
+```
+Pada rentang pukul 12am hingga 6am, didapat bahwa kategori yang paling banyak dilihat oleh orang ialah musik.
+
+Lalu kita bisa melihat viewer yang paling banyak dari kategori musik ini terdapat pada pukul berapa.
+```{r}
+vids.music <- vids.morning[vids.morning$category_id == "Music", ]
+temp4 <- as.data.frame(aggregate(views ~ publish_hour, vids.music, sum))
+ggplot(temp4, aes(x=publish_hour, y=views))+
+  geom_col()+
+  coord_flip()
+```
+Dari plot di atas, dapat simpulkan bahwa orang kebanyakan menonton video music pada pukul 00.00
+
+Maka dari pencarian yang didapatkan, dapat direkomendasikan untuk mempublish video music di rentang 12am hingga 6am pada pukul 00.00.
+
+
+

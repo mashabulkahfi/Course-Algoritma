@@ -1,0 +1,69 @@
+---
+title: "ProyekWeek1"
+author: "Kahfi"
+date: "November 8, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+PROJECT 1
+R Scripts and Reproducible Research: write R script contain function (name whatever) for cleansing data, data manipulation, and get information of your data. This function contains of :
+ a. reads retail.csv file (or your own datasets).
+ b. perform transform (as.Date dll) if you need.
+ c. perform data manipulation (xtabs or aggregate based on your need and creativity).
+ d. export cross tabulation OR plot as output (based on your need or creativity).
+ 
+```{r}
+retail <- read.csv("data_input/retail.csv")
+installed.packages("data.table")
+library("data.table")
+retail1 <- fread("data_input/retail.csv")
+
+# lihat jenis atribut dari tabel retail
+str(retail1);
+#ubah jenis atribut
+head(retail1$`Order Date`,10)
+tail(retail1$`Order Date`,10)
+#karena terilhat bahwa urutan datenya bulan/tanggal/tahun
+retail1$`Order Date`<-as.Date(retail1$`Order Date`,"%m/%d/%y")
+str(retail1)
+retail1$`Ship Date`<-as.Date(retail1$`Ship Date`,"%m/%d/%y")
+retail1$`Ship Mode`<-as.factor(retail1$`Ship Mode`)
+retail1$Segment<-as.factor(retail1$Segment)
+retail1$Category<-as.factor(retail1$Category)
+retail1$`Sub-Category`<-as.factor(retail1$`Sub-Category`)
+
+
+```
+
+
+PROJECT 2
+Reproducible Data Science: create RMarkdown file to report your business recommendation based on your data. This Rmarkdown combines :
+ a. Markdown title, author name, date.
+ b. Add formatting styles and hierarchical structure in your markdown (such as add title using # head, subtitle using ##, add tabset, etc).
+ c. Data Explanation.
+ d. read your data into R.
+ e. Step-by-step data transformation code with some explanatory text (contain 'chunk' and also the markdown).
+ f. Exploratory text and business recommendation based on your own creativity.
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

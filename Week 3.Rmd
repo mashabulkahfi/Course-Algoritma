@@ -1,0 +1,63 @@
+---
+title: "Week 3"
+output: html_document
+author : "Aisyah Nurulhaqi Syahidah dan Muhammad Ashabul Kahfi"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(data.table)
+library(car)
+crime <- fread("data_input/crime.csv")
+```
+
+```{r}
+str(crime)
+head(crime)
+crime$So <- as.logical(crime$So)
+```
+
+- Can your model be any more simplified without losing substantial information?
+- Have you tried predicting the crime rate given a reasonable set of values for the predictor variable?
+- Have you identified any non-random pattern in your residual plot?
+
+```{r}
+olc <- lm(y ~ ., crime)
+step(olc, direction = "backward")
+```
+
+```{r}
+summary(lm(formula = y ~ M + Ed + Po1 + U2 +Ineq + Prob, 
+    data = crime))
+
+vif(lm(formula = y ~ M + Ed + Po1 +  U2 +Ineq + Prob, 
+    data = crime))
+
+cor(crime$y, crime$Po1)
+```
+Setelah dilakukan pencarian x, didapat x yang memiliki korelasi tinggi dengan y adalah Po1. 
+Lalu untuk model regresi linear yang kami buat, kami memilih kumpulan x, yaitu M, Ed, Po1, U2, Ineq, Prob.
+
+```{r}
+crime.solution <- lm(formula = y ~ M + Ed + Po1 + U2 +Ineq + Prob, 
+    data = crime)
+
+summary(crime.solution)
+hist(crime.solution$residuals)
+plot(crime.solution$residuals)
+```
+Dengan melakukan uji plot untuk error, didapat bahwa error dari model yang sudah dibuat tidak memiliki pola.
+Lalu, dilakukan juga uji histogram dari penyebaran residual atau error, didapatkan pula bahwa penyebaran error sudah distribusi normal.
+Sehingga sudah dipenuhi ke-4 asumsi model regresi linear.
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
